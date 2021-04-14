@@ -11,7 +11,6 @@ import {
   TouchableOpacity,
   ScrollView,
   TextInput,
-  AsyncStorage,
 } from 'react-native';
 import {
   responsiveWidth,
@@ -21,6 +20,7 @@ import {
 import { MaterialIcons,Entypo } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native-paper';
 import  {signIn} from '../firebaseConfig/firebaseFunctions';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 //import { connectFirebase } from "../firebaseConfig/config";
 export default class Login extends Component {
   state = {
@@ -37,8 +37,15 @@ export default class Login extends Component {
  async LoginFn(){
    let success= await signIn(this.state.email,this.state.password);
    if(success){
+    AsyncStorage.setItem("breedvalue", "Doodles")
+    AsyncStorage.setItem("title", "Champion")
+    AsyncStorage.setItem("color", "Tri")
+    AsyncStorage.setItem("health", "OFA")
+    AsyncStorage.setItem("genetics", "m/M")
+    AsyncStorage.setItem("Registries", "AKC")
     this.props.navigation.navigate('TabBar', { screen: 'Home' });
    }
+   
  }
   async ValidationFn() {
     this.setState({ loader: true,ErrorMessege:'' });
@@ -123,10 +130,7 @@ export default class Login extends Component {
                 this.setState({ email: text });
               }}
             />
-           
-         
-         
-         
+                   
             <TextInput
               ref={(input) => this._password = input}
 

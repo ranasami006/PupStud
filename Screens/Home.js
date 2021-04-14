@@ -3,21 +3,16 @@ import {
   StyleSheet, Text, View, Dimensions,
   Image, Animated, PanResponder, StatusBar,
   ImageBackground,
-  TouchableOpacity
+  TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { responsiveFontSize, responsiveHeight } from 'react-native-responsive-dimensions';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const SCREEN_HEIGHT = Dimensions.get('window').height
 const SCREEN_WIDTH = Dimensions.get('window').width
 import { AntDesign } from '@expo/vector-icons';
-const Users = [
-  { id: "1", uri: require('../assets/blacktri.jpg'), name: "Tri Black", description: "Breed with ease!", location: "10 miles away" },
-  { id: "2", uri: require('../assets/download.jpg'), name: "Tri Black", description: "Breed with ease!", location: "10 miles away" },
-  { id: "3", uri: require('../assets//Stud1.jpg'), name: "Tri Black", description: "Breed with ease!", location: "10 miles away" },
-  { id: "4", uri: require('../assets/Stud2.jpg'), name: "Tri Black", description: "Breed with ease!", location: "10 miles away" },
-  { id: "5", uri: require('../assets/Stud3.jpg'), name: "Tri Black", description: "Breed with ease!", location: "10 miles away" },
-]
-const length = Users.length;
+import { getAllOfCollection, getAllOfCollectionWithStud, saveDataWithoutDocId, getAllOfCollectionWithCondition, saveData, getAllOfCollectionwithSettings } from '../Component/firebaseConfig/utility'
+
 export default class Home extends React.Component {
 
   constructor() {
@@ -27,6 +22,8 @@ export default class Home extends React.Component {
     this.state = {
       currentIndex: 0,
       showView: false,
+      Users: [],
+      length: '',
     }
 
     this.rotate = this.position.x.interpolate({
@@ -66,12 +63,36 @@ export default class Home extends React.Component {
     })
 
   }
+
+  async LikeDislike(id) {
+    let Token = await AsyncStorage.getItem("Token");
+    this.setState({ currentIndex: this.state.currentIndex + 1 }, () => {
+      this.position.setValue({ x: 0, y: 0 })
+    })
+    await saveDataWithoutDocId('LikeDislike',
+      {
+        userId: Token,
+        studId: this.state.Users[this.state.currentIndex - 1].id,
+        type: id
+      }
+
+    )
+    if (id === "1") {
+      await saveDataWithoutDocId("messageRequest",
+        {
+          likerId: Token,
+          ownerId: this.state.Users[this.state.currentIndex - 1].ownerId,
+          requestChat: true,
+          studId: this.state.Users[this.state.currentIndex - 1].id
+        }
+      )
+    }
+  }
   componentWillMount() {
     this.PanResponder = PanResponder.create({
 
       onStartShouldSetPanResponder: (evt, gestureState) => true,
       onPanResponderMove: (evt, gestureState) => {
-
         this.position.setValue({ x: gestureState.dx, y: gestureState.dy })
       },
 
@@ -81,11 +102,7 @@ export default class Home extends React.Component {
           Animated.spring(this.position, {
             toValue: { x: SCREEN_WIDTH + 100, y: gestureState.dy }
           }).start(() => {
-
-            this.setState({ currentIndex: this.state.currentIndex + 1 }, () => {
-              this.position.setValue({ x: 0, y: 0 })
-            })
-
+            this.LikeDislike("1")
           }
           )
         }
@@ -94,9 +111,7 @@ export default class Home extends React.Component {
             toValue: { x: -SCREEN_WIDTH - 100, y: gestureState.dy }
           }).start(() => {
 
-            this.setState({ currentIndex: this.state.currentIndex + 1 }, () => {
-              this.position.setValue({ x: 0, y: 0 })
-            })
+            this.LikeDislike("0")
 
           })
         }
@@ -109,22 +124,60 @@ export default class Home extends React.Component {
       }
     })
   }
+
+  async componentDidMount() {
+    this.setState({ succes: true })
+    let breedvalue = await AsyncStorage.getItem("breedvalue")
+    let title = await AsyncStorage.getItem("title")
+    let color = await AsyncStorage.getItem("color")
+    let health = await AsyncStorage.getItem("health")
+    let genetics = await AsyncStorage.getItem("genetics")
+    let Registries = await AsyncStorage.getItem("Registries")
+    let Token = await AsyncStorage.getItem("Token");
+    let arr3;
+
+    let Data = await getAllOfCollectionwithSettings("studs", 
+      breedvalue, title, color,
+      health, genetics, Registries
+      )
+
+    let LikeDislike = await getAllOfCollectionWithCondition("LikeDislike", Token)
+    
+    if (LikeDislike.length > 0) { 
+      console.log("TEST LAhore")
+      arr3 = [].concat(
+        Data.filter(obj1 => LikeDislike.every(obj2 => obj1.id !== obj2.studId)),
+        LikeDislike.filter(obj2 => Data.every(obj1 => obj2.studId !== obj1.id))
+      );
+    }
+    else{
+      arr3=Data;
+      console.log("TEST PAKISTAN")
+    }
+
+
+    arr3 = await arr3.filter(arr3 => arr3.ownerId != Token);
+    console.log(arr3)
+    let length = arr3.length;
+    await this.setState({
+      Users: arr3,
+      length: length,
+      succes: false,
+    })
+
+  }
   onHeartClick = () => {
     //this.PanResponder.panHandlers
-    this.setState({ currentIndex: this.state.currentIndex + 1 }, () => {
-      this.position.setValue({ x: 0, y: 0 })
-    })
+    this.LikeDislike("1")
   }
   onCloseClick = () => {
     //this.PanResponder.panHandlers
-    this.setState({ currentIndex: this.state.currentIndex + 1 }, () => {
-      this.position.setValue({ x: 0, y: 0 })
-    })
+    this.LikeDislike("0")
   }
 
   renderUsers = () => {
 
-    return Users.map((item, i) => {
+    return this.state.Users.map((item, i) => {
 
       if (i < this.state.currentIndex) {
         return null
@@ -147,12 +200,8 @@ export default class Home extends React.Component {
 
             <ImageBackground
               style={{ flex: 1, height: null, width: null, resizeMode: 'cover', borderRadius: 40 }}
-              source={item.uri} imageStyle={{ borderRadius: 40 }} >
-              {/* <TouchableOpacity style={{width:'100%',height:'100%'}}
-           onPress={() => {
-            this.props.navigation.navigate("Detail");
-        }}
-           >  */}
+              source={{ uri: item.uri[0] }} imageStyle={{ borderRadius: 40 }} >
+
               <View style={{
                 position: "absolute",
                 bottom: 0,
@@ -181,12 +230,14 @@ export default class Home extends React.Component {
                 padding: responsiveHeight(5)
               }}
                 onPress={() => {
-                  this.props.navigation.navigate("Detail");
+                  this.props.navigation.navigate("Detail",
+                    { Item: item }
+                  );
                 }}
               >
                 <AntDesign name="infocirlce" size={30} color="white" />
               </TouchableOpacity>
-              {/* </TouchableOpacity> */}
+
             </ImageBackground>
             <View style={styles.bottomView}>
               <View style={styles.crossIconView}>
@@ -229,7 +280,7 @@ export default class Home extends React.Component {
 
             <ImageBackground
               style={{ flex: 1, height: null, width: null, resizeMode: 'cover', borderRadius: 40 }}
-              source={item.uri} imageStyle={{ borderRadius: 40 }} >
+              source={{ uri: item.uri[0] }} imageStyle={{ borderRadius: 40 }} >
               <View style={{
                 position: "absolute",
                 bottom: 0,
@@ -244,7 +295,6 @@ export default class Home extends React.Component {
                 </View>
               </View>
               <TouchableOpacity style={{
-
                 position: 'absolute',
                 bottom: 0,
                 alignSelf: 'flex-end',
@@ -283,19 +333,23 @@ export default class Home extends React.Component {
           barStyle="light-content"
           translucent
         />
+        {this.state.succes ?
+          <ActivityIndicator style={{ marginTop: responsiveHeight(30) }} size={'large'} color={'#F44609'} />
+          : (
+            <>
+              <View style={{}}>
 
-        <View style={{}}>
+                {this.state.currentIndex >= this.state.length ?
+                  <Text style={{ textAlign: 'center', alignSelf: 'center', fontSize: responsiveFontSize(2.5) }}>No stud availble come back later</Text>
+                  :
+                  this.renderUsers()}
+              </View>
+              <View style={{ height: 60 }}>
 
-          {this.state.currentIndex >= length ?
-            <Text>okokoko</Text>
-            :
-            this.renderUsers()}
-        </View>
-        <View style={{ height: 60 }}>
-
-        </View>
-
-
+              </View>
+            </>
+          )
+        }
       </View>
 
     );

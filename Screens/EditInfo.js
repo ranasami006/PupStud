@@ -31,6 +31,8 @@ import Constants from 'expo-constants';
 import { Icon } from 'react-native-elements/dist/icons/Icon';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import { getData, getAllOfCollectionWithStud,uploadProductImage, saveData } from '../Component/firebaseConfig/utility';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const SCREEN_HEIGHT = Dimensions.get('window').height
 const SCREEN_WIDTH = Dimensions.get('window').width
 export default class EditInfo extends Component {
@@ -47,23 +49,215 @@ export default class EditInfo extends Component {
             image8: '',
             image9: '',
             index: 1,
+            aboutBreed:"",
+            downloadImgURL: [],
+            studData1:{},
+            userinfo: this.props.route.params.item,
         }
     }
 
     async componentDidMount() {
+        let userId = await AsyncStorage.getItem('Token')
+        let studData = await getAllOfCollectionWithStud('studs', userId)
+        this.state.studData1=studData[0];
+        
+        await this.setState({ studData: studData,userId:userId,
+            
+            breedvalue:this.state.studData1.breedvalue,
+            aboutBreed:this.state.studData1.aboutBreed,
+            title:this.state.studData1.title,
+            color:this.state.studData1.color,
+            health:this.state.studData1.health,
+            genetics:this.state.studData1.genetics,
+            Registries:this.state.studData1.Registries,
+         
+        })
+        await this.setState({
+            firstname:this.state.userinfo.firstname,
+            lastname:this.state.userinfo.lastname,
+            email:this.state.email,
+            imageuser:this.state.userinfo.image,
+
+        })
+
+
+        if (this.state.studData[0].uri[0]) {
+            this.setState({
+                image1: this.state.studData[0].uri[0]
+            })
+        }
+        if (this.state.studData[0].uri[1]) {
+            this.setState({
+                image2: this.state.studData[0].uri[1]
+            })
+        }
+        if (this.state.studData[0].uri[2]) {
+            this.setState({
+                image3: this.state.studData[0].uri[2]
+            })
+        }
+        if (this.state.studData[0].uri[3]) {
+            this.setState({
+                image4: this.state.studData[0].uri[3]
+            })
+        }
+        if (this.state.studData[0].uri[4]) {
+            this.setState({
+                image5: this.state.studData[0].uri[4]
+            })
+        }
+        if (this.state.studData[0].uri[5]) {
+            this.setState({
+                image6: this.state.studData[0].uri[5]
+            })
+        }
+        if (this.state.studData[0].uri[6]) {
+            this.setState({
+                image7: this.state.studData[0].uri[6]
+            })
+        }
+        if (this.state.studData[0].uri[7]) {
+            this.setState({
+                image8: this.state.studData[0].uri[7]
+            })
+        }
+        if (this.state.studData[0].uri[8]) {
+            this.setState({
+                image9: this.state.studData[0].uri[8]
+            })
+        }
+
+        // console.log("YOOOOO",this.state.image1)
         if (Platform.OS !== 'web') {
             const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
             if (status !== 'granted') {
                 alert('Sorry, we need camera roll permissions to make this work!');
             }
         }
+
     }
+    onDonePress= async() => {
+        this.setState({success:true})
+        let { downloadImgURL } = this.state      
+        if(this.state.image1)
+                {     
+                      let downloadURL = await uploadProductImage(this.state.image1);
+                      downloadImgURL.push(downloadURL);
+                }
+                if(this.state.image2)
+                {    
+                      let downloadURL = await uploadProductImage(this.state.image2);
+                      downloadImgURL.push(downloadURL);
+                }
+                if(this.state.image3)
+                {    
+                      let downloadURL = await uploadProductImage(this.state.image3);
+                      downloadImgURL.push(downloadURL);
+                }       
+                if(this.state.image4)
+                {    
+                      let downloadURL = await uploadProductImage(this.state.image4);
+                      downloadImgURL.push(downloadURL);
+                }
+                if(this.state.image5)
+                {    
+                      let downloadURL = await uploadProductImage(this.state.image5);
+                      downloadImgURL.push(downloadURL);
+                }
+                if(this.state.image6)
+                {    
+                      let downloadURL = await uploadProductImage(this.state.image6);
+                      downloadImgURL.push(downloadURL);
+                }
+                if(this.state.image7)
+                {    
+                      let downloadURL = await uploadProductImage(this.state.image7);
+                      downloadImgURL.push(downloadURL);
+                }
+                if(this.state.image8)
+                {    
+                      let downloadURL = await uploadProductImage(this.state.image8);
+                      downloadImgURL.push(downloadURL);
+                }
+                if(this.state.image9)
+                {    
+                      let downloadURL = await uploadProductImage(this.state.image9);
+                      downloadImgURL.push(downloadURL);
+                }
+                if(this.state.imageuser)
+                {    
+                      let downloadURL = await uploadProductImage(this.state.imageuser);
+                     this.setState({imageuser:downloadURL})
+                }
+        let success= await saveData('studs',this.state.studData[0].id,{
+            uri:downloadImgURL,
+            breedvalue:this.state.breedvalue,
+            aboutBreed:this.state.aboutBreed,
+            title:this.state.title,
+            color:this.state.color,
+            health:this.state.health,
+            genetics:this.state.genetics,
+            Registries:this.state.Registries,
+        }) 
+
+        let  success2 = await saveData('users',this.state.userId,{
+            image:this.state.imageuser,
+            firstname:this.state.firstname,
+            lastname:this.state.lastname,
+           // email:this.state.email,
+        })
+    
+        
+       this.props.navigation.navigate('Profile')
+
+    }
+
     showBreed = () => {
         this.setState({
             isBreed: !this.state.isBreed,
 
         })
     }
+    isDoodles = () => {
+        this.setState({
+            isDoodles: !this.state.isDoodles,
+        })
+
+        if (!this.state.isDoodles) {
+            this.setState({
+                isAussie: false,
+                isAussieDoodles: false,
+                breedvalue: "Doodles",
+            })
+        }
+    }
+
+    isAussie = () => {
+        this.setState({
+            isAussie: !this.state.isAussie,
+        })
+        if (!this.state.isAussie) {
+            this.setState({
+                isDoodles: false,
+                isAussieDoodles: false,
+                breedvalue: "Aussie",
+            })
+        }
+    }
+    isAussieDoodles = () => {
+        this.setState({
+            isAussieDoodles: !this.state.isAussieDoodles,
+        })
+        if (!this.state.isAussieDoodles) {
+            this.setState({
+                isDoodles: false,
+                isAussie: false,
+                breedvalue: "Aussie Doddles",
+            })
+        }
+    }
+
+
 
     imagePicker1 = async () => {
         let result = await ImagePicker.launchImageLibraryAsync({
@@ -74,7 +268,7 @@ export default class EditInfo extends Component {
         });
 
 
-        //console.log(result);
+       // console.log(result);
 
         if (!result.cancelled) {
             this.setState({ image1: result.uri });
@@ -192,15 +386,24 @@ export default class EditInfo extends Component {
             aspect: [4, 3],
             quality: 1,
         });
-
-
         //console.log(result);
-
         if (!result.cancelled) {
             this.setState({ image9: result.uri });
         }
     }
-
+    imageuser = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.All,
+            allowsEditing: true,
+            aspect: [4, 3],
+            quality: 1,
+        });
+        if (!result.cancelled) {
+            this.setState({ imageuser: result.uri });
+        }
+        console.log("OKKKKK", result.uri)
+    }
+    
     render() {
         //const breedvalue = this.state.dropdown_6_icon_heart ? require('../assets/icon/icons8-facebook-f1.png') : require('../assets/icon/icons8-google1.png');
         return (
@@ -235,8 +438,10 @@ export default class EditInfo extends Component {
                                         cancel</Text>
                                 </TouchableOpacity>
                             }
-                            centerComponent={{ text: 'Edit Info', 
-                            style: { color: '#757575', fontSize: responsiveFontSize(3), fontWeight: 'bold', alignSelf: 'center', marginTop: -15 } }}
+                            centerComponent={{
+                                text: 'Edit Info',
+                                style: { color: '#757575', fontSize: responsiveFontSize(3), fontWeight: 'bold', alignSelf: 'center', marginTop: -15 }
+                            }}
 
                             rightComponent={
                                 <TouchableOpacity style={{
@@ -245,7 +450,8 @@ export default class EditInfo extends Component {
                                     alignItems: 'flex-start'
                                 }}
                                     onPress={() => {
-                                        this.props.navigation.navigate("Profile");
+                                        this.onDonePress()
+                                        //this.props.navigation.navigate("Profile");
                                     }}
                                 >
                                     <Text style={{
@@ -525,7 +731,7 @@ export default class EditInfo extends Component {
                                 <View style={styles.secondView}>
 
                                     <View style={styles.dropdownIn}>
-                                        <Text style={styles.secondTextView}>Doddles</Text>
+                                        <Text style={styles.secondTextView}>{this.state.breedvalue}</Text>
                                         <Ionicons name="chevron-down" size={24} color="black" style={{ alignSelf: 'center', marginRight: 5 }} />
                                     </View>
 
@@ -593,9 +799,9 @@ export default class EditInfo extends Component {
                                     // onSubmitEditing={() => this._password.focus()}
                                     returnKeyType="next"
                                     returnKeyLabel="next"
-                                    value={this.state.registries}
+                                    value={this.state.aboutBreed}
                                     onChangeText={(text) => {
-                                        this.setState({ registries: text });
+                                        this.setState({ aboutBreed: text });
                                     }}
                                 />
                             </View>
@@ -612,9 +818,9 @@ export default class EditInfo extends Component {
                                     // onSubmitEditing={() => this._password.focus()}
                                     returnKeyType="next"
                                     returnKeyLabel="next"
-                                    value={this.state.registries}
+                                    value={this.state.title}
                                     onChangeText={(text) => {
-                                        this.setState({ registries: text });
+                                        this.setState({ title: text });
                                     }}
                                 />
                             </View>
@@ -631,9 +837,9 @@ export default class EditInfo extends Component {
                                     // onSubmitEditing={() => this._password.focus()}
                                     returnKeyType="next"
                                     returnKeyLabel="next"
-                                    value={this.state.registries}
+                                    value={this.state.color}
                                     onChangeText={(text) => {
-                                        this.setState({ registries: text });
+                                        this.setState({ color: text });
                                     }}
                                 />
                             </View>
@@ -651,9 +857,9 @@ export default class EditInfo extends Component {
                                     // onSubmitEditing={() => this._password.focus()}
                                     returnKeyType="next"
                                     returnKeyLabel="next"
-                                    value={this.state.registries}
+                                    value={this.state.health}
                                     onChangeText={(text) => {
-                                        this.setState({ registries: text });
+                                        this.setState({ health: text });
                                     }}
                                 />
                             </View>
@@ -671,9 +877,9 @@ export default class EditInfo extends Component {
                                     // onSubmitEditing={() => this._password.focus()}
                                     returnKeyType="next"
                                     returnKeyLabel="next"
-                                    value={this.state.registries}
+                                    value={this.state.genetics}
                                     onChangeText={(text) => {
-                                        this.setState({ registries: text });
+                                        this.setState({ genetics: text });
                                     }}
                                 />
                             </View>
@@ -690,28 +896,38 @@ export default class EditInfo extends Component {
                                     // onSubmitEditing={() => this._password.focus()}
                                     returnKeyType="next"
                                     returnKeyLabel="next"
-                                    value={this.state.registries}
+                                    value={this.state.Registries}
                                     onChangeText={(text) => {
-                                        this.setState({ registries: text });
+                                        this.setState({ Registries: text });
                                     }}
                                 />
                             </View>
                         </>
                     ) :
                         <View>
-
-                            <ImageBackground source={require('../assets/1.jpg')}
-                                borderRadius={150 / 2}
-                                style={{
-                                    width: 150, height: 150, borderRadius: 150 / 2, alignSelf: "center", marginTop: responsiveHeight(2), justifyContent: 'center',
-                                    alignItems: 'center'
-                                }}
-                            >
-
-                                <Ionicons name="camera-outline" size={32} color="white"
-                                    style={{ alignSelf: 'center' }}
-                                />
-                            </ImageBackground>
+                            <TouchableOpacity onPress={this.imageuser}>
+                                <ImageBackground source={
+                                    !this.state.imageuser ?
+                                        {
+                                            uri: 'https://s3.amazonaws.com/uifaces/faces/twitter/ladylexy/128.jpg'
+                                        }
+                                        :
+                                        {
+                                            uri: this.state.imageuser
+                                        }
+                                }
+                                    borderRadius={150 / 2}
+                                    style={{
+                                        width: 150, height: 150, borderRadius: 150 / 2, alignSelf: "center",
+                                        marginTop: responsiveHeight(2), justifyContent: 'center',
+                                        alignItems: 'center'
+                                    }}
+                                >
+                                    <Ionicons name="camera-outline" size={32} color="white"
+                                        style={{ alignSelf: 'center' }}
+                                    />
+                                </ImageBackground>
+                            </TouchableOpacity>
                             <View style={{
                                 alignSelf: "center", elevation: 5,
                                 width: responsiveWidth(60),
@@ -740,9 +956,9 @@ export default class EditInfo extends Component {
                                     // onSubmitEditing={() => this._password.focus()}
                                     returnKeyType="next"
                                     returnKeyLabel="next"
-                                    value={this.state.registries}
+                                    value={this.state.firstname}
                                     onChangeText={(text) => {
-                                        this.setState({ registries: text });
+                                        this.setState({ firstname: text });
                                     }}
                                 />
                             </View>
@@ -756,9 +972,9 @@ export default class EditInfo extends Component {
                                     // onSubmitEditing={() => this._password.focus()}
                                     returnKeyType="next"
                                     returnKeyLabel="next"
-                                    value={this.state.registries}
+                                    value={this.state.lastname}
                                     onChangeText={(text) => {
-                                        this.setState({ registries: text });
+                                        this.setState({ lastname: text });
                                     }}
                                 />
                             </View>
@@ -772,9 +988,9 @@ export default class EditInfo extends Component {
                                     // onSubmitEditing={() => this._password.focus()}
                                     returnKeyType="next"
                                     returnKeyLabel="next"
-                                    value={this.state.registries}
+                                    value={this.state.email}
                                     onChangeText={(text) => {
-                                        this.setState({ registries: text });
+                                        this.setState({ email: text });
                                     }}
                                 />
                             </View>
@@ -791,9 +1007,9 @@ export default class EditInfo extends Component {
                                     // onSubmitEditing={() => this._password.focus()}
                                     returnKeyType="next"
                                     returnKeyLabel="next"
-                                    value={this.state.registries}
+                                    value={this.state.changepassword}
                                     onChangeText={(text) => {
-                                        this.setState({ registries: text });
+                                        this.setState({ changepassword: text });
                                     }}
                                 />
                             </View>
@@ -810,9 +1026,9 @@ export default class EditInfo extends Component {
                                     // onSubmitEditing={() => this._password.focus()}
                                     returnKeyType="next"
                                     returnKeyLabel="next"
-                                    value={this.state.registries}
+                                    value={this.state.phone}
                                     onChangeText={(text) => {
-                                        this.setState({ registries: text });
+                                        this.setState({ phone: text });
                                     }}
                                 />
                             </View>

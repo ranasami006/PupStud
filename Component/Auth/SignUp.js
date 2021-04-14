@@ -20,7 +20,7 @@ import {
 } from 'react-native-responsive-dimensions';
 import { MaterialIcons,Entypo } from '@expo/vector-icons';
 import { ActivityIndicator } from 'react-native-paper';
-//import {signUp} from '../firebaseConfig/firebaseFunctions'
+import {signUp} from '../firebaseConfig/firebaseFunctions'
 export default class Login extends Component {
   state = {
     firstname:'',

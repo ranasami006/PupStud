@@ -10,7 +10,10 @@ from 'react-native-responsive-dimensions';
 import Home from './Screens/Home'
 import Profile from './Screens/Profile'
 import ChatDetail from './Screens/ChatDetail'
+import ChatScreen from './Screens/ChatScreen'
+import ChatRequest from './Screens/ChatRequest'
 import SearchScreen from './Screens/SearchScreen'
+import SearchResult from './Screens/SearchResult'
 import Login from './Component/Auth/Login'
 import Settings from './Screens/Settings'
 import Addmedia from './Screens/AddMedia'
@@ -28,7 +31,7 @@ const OverViewStack = createStackNavigator();
 const Main = () => {
   return (
 
-    <MainStack.Navigator initialRouteName="Home" screenOptions={{ headerShown: false, gestureEnabled: false }} >
+    <MainStack.Navigator initialRouteName="AuthLoading" screenOptions={{ headerShown: false, gestureEnabled: false }} >
       <MainStack.Screen name="TabBar" component={TabBar} />
       <MainStack.Screen name="AuthLoading" component={AuthLoading} />
       <MainStack.Screen name="Login" component={Login} />
@@ -36,12 +39,13 @@ const Main = () => {
       <MainStack.Screen name="Settings" component={Settings} />
       <MainStack.Screen name="Detail" component={Detail} />
       <MainStack.Screen name="EditInfo" component={EditInfo} />
-
       <MainStack.Screen name="Addmedia" component={Addmedia} />
+      <MainStack.Screen name="ChatScreen" component={ChatScreen} />
     </MainStack.Navigator>
   );
 
 }
+
 
 
 Main.navigationOptions = ({ navigation }) => {
@@ -55,6 +59,23 @@ Main.navigationOptions = ({ navigation }) => {
   };
 };
 
+const Chats = () => {
+  return (
+ <MainStack.Navigator initialRouteName="ChatDetail" screenOptions={{ headerShown: false, gestureEnabled: false }} >
+  <MainStack.Screen name="ChatDetail" component={ChatDetail} />
+  {/* <MainStack.Screen name="ChatScreen" component={ChatScreen} /> */}
+  <MainStack.Screen name="ChatRequest" component={ChatRequest} />
+</MainStack.Navigator>
+  );
+}
+const Search=() =>{
+  return (
+  <MainStack.Navigator initialRouteName="SearchScreen" screenOptions={{ headerShown: false, gestureEnabled: false }} >
+  <MainStack.Screen name="SearchScreen" component={SearchScreen} />
+  <MainStack.Screen name="SearchResult" component={SearchResult} />
+</MainStack.Navigator>
+  );
+}
 const TabBar = () => {
   return (
     <Tab.Navigator
@@ -97,7 +118,7 @@ const TabBar = () => {
             ),
         }}
       />
-      <Tab.Screen name="SearchScreen" component={SearchScreen}
+      <Tab.Screen name="SearchScreen" component={Search}
         options={{
           tabBarLabel: 'Homescreen',
           tabBarIcon: ({ focused }) =>
@@ -127,7 +148,7 @@ const TabBar = () => {
             ),
         }}
       />
-      <Tab.Screen name="ChatDetail" component={ChatDetail}
+      <Tab.Screen name="ChatDetail" component={Chats}
         options={{
           tabBarLabel: 'ChatDetail',
           tabBarIcon: ({ focused }) =>

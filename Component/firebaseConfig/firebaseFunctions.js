@@ -1,33 +1,25 @@
 import * as firebase from 'firebase'
 //import 'firebase/firestore';
-import { saveData } from "./utility";
+import { saveData,getData,saveInitialData } from "./utility";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 export async function signIn(email, password) {
     let success = true;
     // connectFirebase();
     await firebase.auth()
       .signInWithEmailAndPassword(email, password)
       .then(async user => {
-        console.log("Welcome")
-    //     let userinfo = await getData('users', user.user.uid);
-    //     var user1= auth().currentUser;
-    //     if(user1.emailVerified){
-    //     if (userinfo) {
-    //       GlobalConst.UserInfo = userinfo;
-    //       AsyncStorage.setItem('Token', user.user.uid);
-    //       AsyncStorage.setItem('favPost', userinfo.fav);
-    //       if (userinfo.imgurl) {
-    //         AsyncStorage.setItem('user_imgurl', userinfo.imgurl);
-    //       }
-    //     } else {
-    //       success = false;
-    //       await firebase.auth().signOut();
-    //       alert('Invalid User!');
-    //     }
-    //   }
-    //   else{
-    //     success = false;
-    //     ToastAndroid.show("Please verify your email before sign in",ToastAndroid.LONG);
-    //   }
+        
+        let userinfo = await getData('users', user.user.uid);
+          if (userinfo) {
+          console.log("Welcome pak",user.user.uid)
+       
+             AsyncStorage.setItem('Token', user.user.uid);
+           } else {
+          success = false;
+          await firebase.auth().signOut();
+          alert('Invalid User!');
+        }
+    
       })
       .catch(function(error) {
         success = false;
@@ -57,6 +49,7 @@ export async function signIn(email, password) {
           rating: 0,
         };
         await saveData('users', user.user.uid, Details);
+        await saveInitialData('chats', user.user.uid);
         alert('Thank you for your registration! Your account is now ready to use.');
       })
       .catch(function (error) {

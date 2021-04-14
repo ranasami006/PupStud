@@ -14,8 +14,8 @@ import {
     responsiveHeight,
     responsiveFontSize,
 } from 'react-native-responsive-dimensions';
-
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { saveData, getData } from "../Component/firebaseConfig/utility";
 const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 
@@ -24,8 +24,18 @@ export default class Profile extends Component {
         super(props);
 
         this.state = {
-
+            userData: {}
         }
+    }
+    async componentDidMount() {
+        let userId = await AsyncStorage.getItem("Token");
+        let userData = await getData('users', userId);
+
+        await this.setState({
+            userData: userData,
+        })
+
+
     }
 
     render() {
@@ -37,15 +47,26 @@ export default class Profile extends Component {
                         <View style={{
                             alignItems: 'center',
                         }}>
-                            <Image
-                                source={require('../assets/Stud1.jpg')}
+                           {this.state.userData.image?(
+                           
+                           
+                           
+                           <Image
+                                
+                                source={{ uri: this.state.userData.image }}
                                 style={styles.icon}></Image>
-                            <Text style={{ fontSize: responsiveFontSize(5), fontWeight: 'bold' }}>User Jhon</Text>
+                                ):(
+                                    <Image
+                                
+                                    source={require('.././assets/peofileDemo.jpeg')}
+                                    style={styles.icon}></Image>
+                                )}
+                            <Text style={{ fontSize: responsiveFontSize(5), fontWeight: 'bold' }}>{this.state.userData.firstname}</Text>
                             <Text style={{ fontSize: responsiveFontSize(2) }}>offering Stud & Looking for Stud</Text>
                         </View>
                         <View style={styles.firsticonRow}>
                             <View>
-                                <TouchableOpacity style={styles.SettingView} onPress={()=>this.props.navigation.navigate('Settings')}>
+                                <TouchableOpacity style={styles.SettingView} onPress={() => this.props.navigation.navigate('Settings')}>
                                     <Image
                                         source={require('../assets/icon/settings_24px.png')}
                                         style={styles.Settingicon}></Image>
@@ -55,34 +76,34 @@ export default class Profile extends Component {
                                 </Text>
                             </View>
                             <View>
-                                  <TouchableOpacity  style={styles.SettingView1}
-                                  onPress={() => {
-                                    this.props.navigation.navigate("EditInfo");
-                                }}
-                                  >
+                                <TouchableOpacity style={styles.SettingView1}
+                                    onPress={() => {
+                                        this.props.navigation.navigate("EditInfo",{item:this.state.userData});
+                                    }}
+                                >
 
                                     <Image
                                         source={require('../assets/icon/edit_24px.png')}
                                         style={styles.Settingicon}></Image>
 
-                             </TouchableOpacity >
+                                </TouchableOpacity >
                                 <Text style={{ marginHorizontal: responsiveHeight(5), fontSize: responsiveFontSize(2), color: "#757575" }}>
                                     Edit Info
                                </Text>
                             </View>
 
                         </View>
-                        <TouchableOpacity 
-                        onPress={() => {
-                            this.props.navigation.navigate("Addmedia");
-                        }}
-                        style={styles.CameraView}>
+                        <TouchableOpacity
+                            onPress={() => {
+                                this.props.navigation.navigate("Addmedia");
+                            }}
+                            style={styles.CameraView}>
 
                             <Image
                                 source={require('../assets/icon/camera_alt_24px.png')}
                                 style={styles.Settingicon}></Image>
                         </TouchableOpacity>
-                        <Text style={{ alignSelf:'center', fontSize: responsiveFontSize(2), color: "#757575" }}>
+                        <Text style={{ alignSelf: 'center', fontSize: responsiveFontSize(2), color: "#757575" }}>
                             Add media
                         </Text>
 
@@ -91,7 +112,7 @@ export default class Profile extends Component {
                         <Image
                             source={require('../assets/icon/location_on_24px.png')}
                             style={styles.Locationicon}></Image>
-                        <Text style={{ margin: responsiveHeight(0), fontSize: responsiveFontSize(2.5), color: "#F44609",alignSelf:'center' }}>
+                        <Text style={{ margin: responsiveHeight(0), fontSize: responsiveFontSize(2.5), color: "#F44609", alignSelf: 'center' }}>
                             Swipe around Breeds
                         </Text>
                     </View>
@@ -150,11 +171,11 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignContent: 'center',
         alignItems: 'center',
-        alignSelf:'center',
+        alignSelf: 'center',
     },
     bottomView: {
         flexDirection: 'row',
-        marginTop:responsiveHeight(2.5),
+        marginTop: responsiveHeight(2.5),
         alignContent: 'center', justifyContent: 'center'
     },
     Locationicon: {
